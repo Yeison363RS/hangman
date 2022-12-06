@@ -90,7 +90,7 @@
 
 %endmacro
 
-%macro show_message 0
+%macro show_message 1
         pusha
         mov esi, msgsacci ; /////move the memory direction of first character of the word to esi register
         mov edi, msg  ; /////move the memory of the word secret (namely the representation word with * simbols) to esi register
@@ -98,7 +98,7 @@
 %%ss01:
         mov al, [esi]   ; move the character of memory direction esi register to al of eax register 
         inc esi         ; put the esi the memory direction of next character (*) for add to secret word
-        cmp ecx,ebx
+        cmp ecx,%1
         je %%ss04
         cmp al, 0       ; the character stored in al of eax register is equals to 0 (null) namely the end of word
         je %%ss02      ; if compation is true skip to label cw02 (end route in to hidden word) 
@@ -116,6 +116,9 @@
         jmp %%ss04
 %%end_pro:
         mov byte [edi], 0;
+        mov eax , msg
+        call print_string
+        call print_nl
         popa 
 %endmacro
 
@@ -149,25 +152,29 @@
 %endmacro
 
 %macro verify_character 0
-        pusha
-        mov esi, secret ; /////
-        mov edi, hidden
+       pusha
+        mov esi, hidden ; /////
+        mov edi, secret
         mov ebx, 0
         mov ecx, 0
+        mov eax , character
+        call print_string
+        mov [matches],ecx
         jmp %%pp02;
 %%pp02:
+        
         mov al, [esi]
         cmp al, 0
         je %%end
         cmp al, [character]
         je %%pp01
         mov al, [edi]
-        mov ah,[HIDDEN_CHAR]
-        cmp al, ah
+        mov byte [edx],HIDDEN_CHAR
+        cmp al, dl
         je %%pp04
         jmp %%pp03
 %%pp04:
-        inc ebx
+        add ebx,1
         mov [not_found],ebx
         jmp %%pp03
 %%pp03:
@@ -175,17 +182,21 @@
         inc esi
         jmp %%pp02;
 %%pp01:
+
         mov al, [edi]
-        mov ah,[HIDDEN_CHAR]
-        cmp al, ah
+        mov byte [edx],HIDDEN_CHAR
+        cmp al, dl
         je %%pp03
-        mov [edi], esi
+        mov al, [character] 
+        mov [edi], al 
         inc edi
         inc esi
-        inc ecx
+        add ecx,1
+        mov al, cl
         jmp %%pp02
 
 %%end:
+        mov [matches],ecx
         popa
 %endmacro
 
@@ -336,16 +347,13 @@ segment .data
                 db "Mejor suerte para la proxima, vuelve a intentarlo" ,0
 
         words   db "COLOMBIA" ,0
-                db "FRANCIA" ,0
-                db "EU" ,0
-                db "ALEMANIA" ,0
-                db "PERU" ,0
-                db "ARGENTINA" ,0
-        msg_input db "Ingrese una letra"
+        msg_input db "Ingrese una letra",0
+
+        test_m db "test",0
 
 segment .bss
 
-        WORDS_LEN equ 6
+        WORDS_LEN equ 1
         HIDDEN_CHAR     equ '*'     ;hidden char
         MAX_WORD_LEN    equ 10      ;max length for sentences in the dictionary
         PLAYER_LIVES    equ 3       ;player lives
@@ -360,7 +368,8 @@ segment .bss
         scene   resb 350          ;reserve space for number lives while playing
         msg   resb 350          ;reserve space for number lives while playing
         not_found resb 1
-        character resb 1 
+        character resb 1
+        matches resb 1 
 
 segment .text
 
@@ -375,42 +384,50 @@ segment .text
                 choose_word             ; call macro that choose a word based on random number
                 init_secret_word        ; call macro that preparing the word to be shown
                 mov byte [lives], PLAYER_LIVES;Assigns the intial number lives
-        play:   
+        play:
                 showing_word            ; call macro showing_word   
                 mov eax , msg_input
                 call print_string
                 call print_nl
+                ;mov eax ,0
                 call read_char
-                mov [character], al
-                call verify_character
-                cmp ecx, 0
-                je pg01
-                cmp ebx,0
-                je pg03
+                call print_char
+                ;mov [character], al
+                ;call verify_character
+                ;;mov ecx,[matches]
+                ;mov eax , ecx
+                ;call print_int
+                ;call print_nl
+
+                ;cmp ecx, 0
+                ;je pg01
+                ;mov ebx,[not_found]
+                ;cmp ebx,0
+                ;je pg03
+
                 jmp play 
         pg01:
+                ;mov eax , test_m
+                ;call print_string
                 mov eax,[lives]           ;??
                 cmp eax, 0
-                je pg02
+                je pg04
                 sub eax,1
+                mov [lives],eax
+                mov eax,scene_num
+                add eax,1
+                mov [scene_num],eax 
                 show_scene [scene_num]
                 mov eax , scene
                 call print_string
-        pg02:
-                mov eax,[scene_num],
-                inc eax
-                mov [scene_num],eax
-                cmp eax,[MAX_SCENES]
         pg04:
                 show_scene [scene_num]
                 mov eax , scene
                 call print_string
-                mov ebx,2
-                show_message
+                show_message 2
                 jmp end_progra 
-        pg03:
-                mov ebx,1
-                show_message
+        pg03:   
+                show_message 1
                 jmp end_progra
 
         end_progra:
