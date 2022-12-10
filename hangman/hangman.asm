@@ -5,7 +5,7 @@
 ; This file is a skeleton that can be used to start assembly programs.
 
 %include "asm_io.inc"
-
+LINE_FEED equ 10
 %macro random 1
         pusha
         mov ecx, 0xff   ; set value for the divider (255)
@@ -98,7 +98,7 @@
 %%ss01:
         mov al, [esi]   ; move the character of memory direction esi register to al of eax register 
         inc esi         ; put the esi the memory direction of next character (*) for add to secret word
-        cmp ecx,%1
+        cmp cl,%1
         je %%ss04
         cmp al, 0       ; the character stored in al of eax register is equals to 0 (null) namely the end of word
         je %%ss02      ; if compation is true skip to label cw02 (end route in to hidden word) 
@@ -126,11 +126,12 @@
         pusha
         mov esi, scenes ; /////move the memory direction of first character of the word to esi register
         mov edi, scene  ; /////move the memory of the word secret (namely the representation word with * simbols) to esi register
-        mov ecx,1       ;//// 
+        mov ecx,1
+        ;dump_regs 1       ;//// 
 %%ss01:
         mov al, [esi]   ; move the character of memory direction esi register to al of eax register 
         inc esi         ; put the esi the memory direction of next character (*) for add to secret word
-        cmp ecx, %1
+        cmp cl, %1
         je %%ss04
         cmp al, 0       ; the character stored in al of eax register is equals to 0 (null) namely the end of word
         je %%ss02      ; if compation is true skip to label cw02 (end route in to hidden word) 
@@ -148,85 +149,79 @@
         jmp %%ss04
 %%end_pro:
         mov byte [edi], 0;
+        mov eax , scene
+        call print_string
         popa 
 %endmacro
 
 %macro verify_character 0
-       pusha
-        mov esi, hidden ; /////
+        pusha
+        mov esi, hidden 
         mov edi, secret
         mov ebx, 0
         mov ecx, 0
-        mov eax , character
-        call print_string
-        mov [matches],ecx
+        mov [not_f],bl
+        mov [matches],cl
         jmp %%pp02;
 %%pp02:
-        
         mov al, [esi]
         cmp al, 0
-        je %%end
+        je %%end_m
         cmp al, [character]
         je %%pp01
-        mov al, [edi]
-        mov byte [edx],HIDDEN_CHAR
+        mov al, [edi] 
+        mov dl,HIDDEN_CHAR
         cmp al, dl
         je %%pp04
-        jmp %%pp03
+        jmp %%pp05     
 %%pp04:
+        mov bl,[not_f]
         add ebx,1
-        mov [not_found],ebx
-        jmp %%pp03
+        mov [not_f],bl
+        jmp %%pp05
 %%pp03:
+        mov al, [character] 
+        mov [edi], al
         inc edi
         inc esi
+        mov cl,[matches]
+        add ecx,1
+        mov [matches],cl
+        jmp %%pp02
+%%pp05:
+        inc edi
+        inc esi 
         jmp %%pp02;
-%%pp01:
 
+%%pp01:
         mov al, [edi]
-        mov byte [edx],HIDDEN_CHAR
+        mov dl,HIDDEN_CHAR
         cmp al, dl
         je %%pp03
-        mov al, [character] 
-        mov [edi], al 
-        inc edi
-        inc esi
-        add ecx,1
-        mov al, cl
-        jmp %%pp02
+        jmp %%pp05
 
-%%end:
+%%end_m:
         mov [matches],ecx
         popa
 %endmacro
 
 segment .data
-        msgsacci  db "█▀ ▄▀█ █   █  █ ▄▀█ █▀▄ █▀█",10
+        msgsacci  db " █▀ █▀█ █   █  █ █▀█ █▀▄ █▀█",10
                   db "▄█ █▀█ █▄▄  ▀▄▀ █▀█ █▄▀ █▄█",0
-                db "▄▀█ █░█ █▀█ █▀█ █▀▀ ▄▀█ █▀▄ █▀█",10
-                db "█▀█ █▀█ █▄█ █▀▄ █▄▄ █▀█ █▄▀ █▄█",0
+                db "  █▀█ █░█ █▀█ █▀█ █▀▀ █▀█ █▀▄ █▀█",10
+                db " █▀█ █▀█ █▄█ █▀▄ █▄▄ █▀█ █▄▀ █▄█",0
 
         scenes db "",10
                 db "",10
                 db "",10
                 db "",10
                 db "",10
-                db "              \   _   /",10
-                db "               \('_')/",10
+                db "              \\   _   /",10
+                db "               \\('_')/",10
                 db "                  ██",10
                 db "                  ██",10
-                db "                 /  \",10
-                db "________________/____\______",0
-                db "__",10
-                db "||",10
-                db "||",10
-                db "||",10
-                db "||               \   _   /",10
-                db "||                \('_')/",10
-                db "||                  ██",10
-                db "||                  ██",10
-                db "||                  / \",10
-                db "||_________________/___\______",0
+                db "                 /  \\",10
+                db "________________/____\\______",0
                 db "_______",10
                 db "_______",10
                 db "||",10
@@ -235,26 +230,12 @@ segment .data
                 db "||",10
                 db "||",10
                 db "||",10
-                db "||     \   _   /",10
-                db "||      \('_')/",10
+                db "||     \\   _   /",10
+                db "||      \\('_')/",10
                 db "||        ██",10
                 db "||        ██",10
-                db "||        / \",10
-                db "||_______/___\_________",0
-                db "_______________",10
-                db "_______________|",10
-                db "||",10
-                db "||",10
-                db "||",10
-                db "||",10
-                db "||",10
-                db "||",10
-                db "||         _",10
-                db "||    ___('_')___",10
-                db "||        ██",10
-                db "||        ██",10
-                db "||        /  \",10
-                db "||_______/____\______",0
+                db "||        / \\",10
+                db "||_______/___\\_________",0
                 db "_______________________",10
                 db "_______________|_|_____|",10
                 db "||",10
@@ -264,10 +245,10 @@ segment .data
                 db "||",10
                 db "||         _",10
                 db "||       ('_')",10
-                db "||       /██\",10
-                db "||      / ██ \",10
-                db "||        /  \",10
-                db "||_______/____\______",0
+                db "||       /██\\",10
+                db "||      / ██ \\",10
+                db "||        /  \\",10
+                db "||_______/____\\______",0
                 db "_______________________",10
                 db "_______________|_|_____|",10
                 db "||              °",10
@@ -278,10 +259,10 @@ segment .data
                 db "||          °",10
                 db "||        °  _",10
                 db "||       ° ('_')",10
-                db "||     ° __/██\",10
-                db "||° °       ██ \",10
-                db "||          / \",10
-                db "||_________/___\______",0
+                db "||     ° __/██\\",10
+                db "||° °       ██ \\",10
+                db "||          / \\",10
+                db "||_________/___\\______",0
                 db "_______________________",10
                 db "_______________|_|_____|",10
                 db "||              °",10
@@ -289,10 +270,10 @@ segment .data
                 db "||               ° °",10
                 db "||                _  °",10
                 db "||              ('_') °°°",10
-                db "||             / ██ \__C°°",10
+                db "||             / ██ \\__C°°",10
                 db "||            /  ██  ",10
-                db "||               /  \",10
-                db "||             _/____\_",10
+                db "||               /  \\",10
+                db "||             _/____\\_",10
                 db "||            |________|",10
                 db "||              ||  ||",10
                 db "||______________||__||_______",0
@@ -304,10 +285,10 @@ segment .data
                 db "||            °  °",10
                 db "||          °  _  °",10
                 db "||          °(;_;)°",10
-                db "||          / ██ \",10
-                db "||         /  ██  \",10
-                db "||           /  \",10
-                db "||         _/____\_",10
+                db "||          / ██ \\",10
+                db "||         /  ██  \\",10
+                db "||           /  \\",10
+                db "||         _/____\\_",10
                 db "||        |________|",10
                 db "||          ||  ||",10
                 db "||__________||__||_______",0
@@ -319,10 +300,10 @@ segment .data
                 db "||            °  °",10
                 db "||          °  _  °",10
                 db "||         °(;L;)°",10
-                db "||         / ██ \",10
-                db "||        /  ██  \",10
-                db "||          /  \",10
-                db "||        _/__ _\",10
+                db "||         / ██ \\",10
+                db "||        /  ██  \\",10
+                db "||          /  \\",10
+                db "||        _/__ _\\",10
                 db "||        |__|   ",10
                 db "||          ||  ",10
                 db "||__________||___________",0
@@ -338,27 +319,55 @@ segment .data
                 db "||           |██|",10
                 db "||            | | ",10
                 db "||            | |",10
-                db "||            " "",10
+                db "||            - -",10
                 db "||           ",10
                 db "||_____________________",0
 
-                
-        messagges db "Felicitaciones Ganaste" ,0
-                db "Mejor suerte para la proxima, vuelve a intentarlo" ,0
 
-        words   db "COLOMBIA" ,0
+        words   db "VICENT VAN GOGH" ,0
+                db "DIEGO VELAZQUEZ" ,0
+                db "PABLO PICASSO" ,0
+                db "CLAUDE MONET" ,0
+                db "PAUL CEZANNE" ,0
+                db "FRANCISCO DE GOYA" ,0
+                db "LEONARDO DA VINCI" ,0
+                db "REMBRANDT" ,0
+                db "SANDRO BOTTICELLI" ,0
+                db "MIGUEL ANGEL" ,0
+                db "SALVADOR DALI" ,0
+                db "REMBRANDT" ,0
+                db "ANTONIO CANO" ,0
+                db "DEBORA ARANGO" ,0
+                db "FERNANDO BOTERO" ,0
+                db "REMBRANDT" ,0
+                db "CARAVAGGIO" ,0
+                db "GUSTAV KLIMT" ,0
+                db "HENRI MATISSE" ,0
+                db "RENE MAGRITTE" ,0
+                db "SALVADOR DALI" ,0
+
         msg_input db "Ingrese una letra",0
 
-        test_m db "test",0
-
+        menu    db    "            ------------------------------------------------",10
+                db    "           |  --------------------------------------------  |",10
+                db    "           | |                                            | |",10
+                db    "           | |     ¡Bienvenido al juego del ahorcado!     | |",10
+                db    "           | |                                            | |",10
+                db    "           | |      Ingresa el número de la opción        | |",10
+                db    "           | |      que desea                             | |",10
+                db    "           | |                                            | |",10
+                db    "           | |      1.Jugar                               | |",10
+                db    "           | |      2.Salir del juego                     | |",10
+                db    "           |  --------------------------------------------  |",10                    
+                db    "            -------------------------------------------------   ",0
+        msg_lives db "Numero de vidas: ",0
 segment .bss
 
-        WORDS_LEN equ 1
+        WORDS_LEN equ 21
         HIDDEN_CHAR     equ '*'     ;hidden char
-        MAX_WORD_LEN    equ 10      ;max length for sentences in the dictionary
-        PLAYER_LIVES    equ 3       ;player lives
-        MAX_SCENES    equ 9       ;player lives
-        INIT_SCENE    equ 1       ;player lives
+        MAX_WORD_LEN    equ 18      ;max length for sentences in the dictionary
+        PLAYER_LIVES    equ 8       ;player lives
+        INIT_SCENE    equ 0       ;player lives
 
         hidden  resb MAX_WORD_LEN   ;reserve space for store the characters hidden for length secret word 
         secret  resb MAX_WORD_LEN   ;reserve space for store the characters of secret word
@@ -367,9 +376,10 @@ segment .bss
         scene_num   resb 1          ;reserve space for number lives while playing
         scene   resb 350          ;reserve space for number lives while playing
         msg   resb 350          ;reserve space for number lives while playing
-        not_found resb 1
+        not_f resb 1
         character resb 1
-        matches resb 1 
+        matches resb 1
+        option resb 1 
 
 segment .text
 
@@ -378,57 +388,91 @@ segment .text
         asm_main:
                 enter   0,0              ; setup routine
                 pusha
+        init:
+                mov eax , menu
+                call print_string
+                call print_nl
+                call read_int
+                mov [option], eax
+                mov eax, [option]
+                cmp eax,1
+                je game
+                jmp end_progra
+        game:
 
-                mov byte [scene_num],INIT_SCENE
                 random WORDS_LEN        ; call macro that generate a random number
                 choose_word             ; call macro that choose a word based on random number
                 init_secret_word        ; call macro that preparing the word to be shown
                 mov byte [lives], PLAYER_LIVES;Assigns the intial number lives
-        play:
+                mov byte [scene_num],INIT_SCENE;
                 showing_word            ; call macro showing_word   
                 mov eax , msg_input
                 call print_string
                 call print_nl
-                ;mov eax ,0
+                jmp play
+
+        print_sm:
+                mov eax , msg_lives
+                call print_string
+                mov eax,0
+                mov al,[lives]
+                call print_int
+                call print_nl
+                mov al,[scene_num]
+                show_scene [scene_num]
+                call print_nl
+                showing_word
+                call print_nl            ; call macro showing_word   
+                mov eax , msg_input
+                call print_string
+                call print_nl
+        play:
                 call read_char
-                call print_char
-                ;mov [character], al
-                ;call verify_character
-                ;;mov ecx,[matches]
-                ;mov eax , ecx
-                ;call print_int
-                ;call print_nl
+                cmp al, LINE_FEED
+                je play
+                mov byte [character],al
+                verify_character
+                mov cl,[matches]
+                mov bl,[not_f]
 
-                ;cmp ecx, 0
-                ;je pg01
-                ;mov ebx,[not_found]
-                ;cmp ebx,0
-                ;je pg03
-
-                jmp play 
+        loop_game:
+                cmp bl,0
+                je pg03
+                cmp cl,0
+                je pg01
+                mov eax , msg_input
+                showing_word            ; call macro showing_word   
+                call print_string
+                call print_nl
+                jmp play
         pg01:
-                ;mov eax , test_m
-                ;call print_string
-                mov eax,[lives]           ;??
-                cmp eax, 0
-                je pg04
+                mov al,[lives]
                 sub eax,1
-                mov [lives],eax
-                mov eax,scene_num
+                mov [lives],al
+                mov al,[scene_num]
                 add eax,1
-                mov [scene_num],eax 
-                show_scene [scene_num]
-                mov eax , scene
-                call print_string
+                mov [scene_num],al
+                mov al,[lives]
+                cmp al,0
+                je pg04
+                jmp print_sm
         pg04:
-                show_scene [scene_num]
-                mov eax , scene
+                mov eax , msg_lives
                 call print_string
+                mov eax,0
+                mov al,[lives]
+                call print_int
+                call print_nl
+                show_scene [scene_num]
+                call print_nl
                 show_message 2
-                jmp end_progra 
+                jmp init 
         pg03:   
+                call print_nl
+                showing_word
+                call print_nl
                 show_message 1
-                jmp end_progra
+                jmp init
 
         end_progra:
 
