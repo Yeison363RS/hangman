@@ -36,7 +36,7 @@ LINE_FEED equ 10
         mov esi, hidden ; locate the memory direction of variable hidden (word to play) in ebx register
 
 %%cw01:
-        cmp ecx, [number]; the number actual word in the dictionary 
+        cmp ecx, [number]; the number current word in the dictionary 
                         ; selected is equals to random number to play  
         je %%cw03       ; if compation is true skip to label cw3, if is false follow the execution flow 
         mov al, [ebx]   ; get the next character located in the memory direction ebx register does it move to al of eax register
@@ -45,7 +45,7 @@ LINE_FEED equ 10
         inc ebx         ; put the ebx the memory direction of next character on the sequence of characters of dictionary words
         jmp %%cw01      ; skip to label cw01 (to read next character)
 %%cw02:
-        inc ecx         ; increase the number of actual word in the dictionary
+        inc ecx         ; increase the number of current word in the dictionary
         inc ebx         ; put the ebx the memory direction of next character on the sequence of characters of dictionary words
         jmp %%cw01      ; skip to label cw01
 %%cw03:
@@ -75,7 +75,7 @@ LINE_FEED equ 10
         inc edi         ; put the edi the memory direction of next character word to guess
         jmp %%isw01     ; skip to label isw02
 %%isw02:
-        mov byte [edi], 0;      
+        mov byte [edi], 0 ;add the final character to the secret word to be displayed 
 
         popa
 %endmacro
@@ -83,134 +83,136 @@ LINE_FEED equ 10
 %macro showing_word 0
 
         pusha 
-        mov eax, secret
-        call print_string
-        call print_nl
-        popa
+        mov eax, secret         ;put the the representation with special characters of the secret word
+        call print_string       ;call function for printing the secret word stored in eax register
+        call print_nl           ;call function for printing a jump line
+        popa                    
 
 %endmacro
 
 %macro show_message 1
         pusha
-        mov esi, msgsacci ; /////move the memory direction of first character of the word to esi register
-        mov edi, msg  ; /////move the memory of the word secret (namely the representation word with * simbols) to esi register
-        mov ecx,1       ;//// 
-%%ss01:
-        mov al, [esi]   ; move the character of memory direction esi register to al of eax register 
-        inc esi         ; put the esi the memory direction of next character (*) for add to secret word
-        cmp cl,%1
-        je %%ss04
-        cmp al, 0       ; the character stored in al of eax register is equals to 0 (null) namely the end of word
-        je %%ss02      ; if compation is true skip to label cw02 (end route in to hidden word) 
-        jmp %%ss01      ; skip to label isw02
-%%ss02:
-        inc ecx
-        jmp %%ss01        
-%%ss04:
-        mov al, [esi]
-        cmp al, 0
-        je %%end_pro
-        mov [edi], al
-        inc edi
-        inc esi
-        jmp %%ss04
+        mov esi, msgsacci       ;move the memory direction of first character of the dictionary of message to esi register
+        mov edi, msg            ;move the memory direction  of first character of message to edi register
+        mov ecx,1               ;put value of first message in the dictionary of messages
+%%sm01:
+        mov al, [esi]           ;move the character of memory direction esi register to al of eax register 
+        inc esi                 ;increse the memory direction into dictionary of the messages
+        cmp cl,%1               ;compare the number of message current with the message wants to print
+        je %%sm04               ;if the compation is correct skip to label sm04
+        cmp al, 0               ;compare the character stored in al of eax register with 0 (null) namely the end of word
+        je %%sm02               ; if compation is true skip to label sm02 (end of a message) 
+        jmp %%sm01              ; if fails the previus comparations skip to label sm01
+%%sm02:
+        inc ecx                 ;increment the counter to indicate the number of message current
+        jmp %%sm01              ;skip to label sm01
+%%sm04:
+        mov al, [esi]           ;put the of the message located in the dictionary of messages
+        cmp al, 0               ;compare if character with 0 for indicate the end of the message selected
+        je %%end_pro            ;if the compation is correct skip to label end_pro
+        mov [edi], al           ;put the character selected in the dictionary of messages into message will be shown 
+        inc edi                 ;increase the number of memory allocated into the dictionary of messages
+        inc esi                 ;increase the number of memory allocated into the message to be displayed
+        jmp %%sm04              ;skip to label sm04 to take the next character
 %%end_pro:
-        mov byte [edi], 0;
-        mov eax , msg
-        call print_string
-        call print_nl
+        mov byte [edi], 0;      ;add the final character to the message to be displayed
+        mov eax , msg           ;put the message to be displayed to the eax register
+        call print_string       ;call function to print the message seleted
+        call print_nl           ;call function for printing a jump line
         popa 
 %endmacro
 
 %macro show_scene 1
         pusha
-        mov esi, scenes ; /////move the memory direction of first character of the word to esi register
-        mov edi, scene  ; /////move the memory of the word secret (namely the representation word with * simbols) to esi register
-        mov ecx,1
-        ;dump_regs 1       ;//// 
+        mov esi, scenes ;move the memory direction of first character of the dictionary of scenes the game to esi register
+        mov edi, scene  ;move the memory direction  of first character of scene to be displayed to edi register
+        mov ecx,1       ;put value of first scene in the dictionary of scenes of the game
 %%ss01:
-        mov al, [esi]   ; move the character of memory direction esi register to al of eax register 
-        inc esi         ; put the esi the memory direction of next character (*) for add to secret word
-        cmp cl, %1
-        je %%ss04
-        cmp al, 0       ; the character stored in al of eax register is equals to 0 (null) namely the end of word
-        je %%ss02      ; if compation is true skip to label cw02 (end route in to hidden word) 
-        jmp %%ss01      ; skip to label isw02
+        mov al, [esi]   ;move the character of the dictionary of scenes to the memory direction esi register to al of eax register 
+        inc esi         ;increse the memory direction into dictionary of the messages
+        cmp cl, %1      ;compare the number current of scene in the dictionary with the number that who wants
+        je %%ss04       ;if the comparation is equals skip to label ss04 to take the next character
+        cmp al, 0       ;compare the character stored in al of eax register with 0 (null) namely the end of a scene
+        je %%ss02       ;if compation is true skip to label ss02 (end of the a scene) 
+        jmp %%ss01      ; skip to label iss02
 %%ss02:
-        inc ecx
-        jmp %%ss01        
+        inc ecx         ;increase the counter of number current scene actual
+        jmp %%ss01      ; skip to label iss01
 %%ss04:
-        mov al, [esi]
-        cmp al, 0
-        je %%end_pro
-        mov [edi], al
-        inc edi
-        inc esi
-        jmp %%ss04
+        mov al, [esi]   ;place in eax register the character indicated of dictionary of scenes
+        cmp al, 0       ;compare the character stored in eax register with 0
+        je %%end_pro    ;if in the comparation are equals skip to label end_pro this indicates end of scene selected
+        mov [edi], al   ;put the character selected in the dictionary of scenes into scene will be shown
+        inc edi         ;increase the number of memory allocated into the scene to be displayed
+        inc esi         ;increase the number of memory allocated into the dictionary of scenes
+        jmp %%ss04      ; skip to label iss04
 %%end_pro:
-        mov byte [edi], 0;
-        mov eax , scene
-        call print_string
+        mov byte [edi], 0;add the final character to the scene to be displayed
+        mov eax , scene ;put the scene to be displayed to the eax register
+        call print_string ;call function to print the scene seleted
         popa 
 %endmacro
 
 %macro verify_character 0
         pusha
-        mov esi, hidden 
-        mov edi, secret
-        mov ebx, 0
-        mov ecx, 0
-        mov [not_f],bl
-        mov [matches],cl
-        jmp %%pp02;
-%%pp02:
-        mov al, [esi]
-        cmp al, 0
-        je %%end_m
-        cmp al, [character]
-        je %%pp01
-        mov al, [edi] 
-        mov dl,HIDDEN_CHAR
-        cmp al, dl
-        je %%pp04
-        jmp %%pp05     
-%%pp04:
-        mov bl,[not_f]
-        add ebx,1
-        mov [not_f],bl
-        jmp %%pp05
-%%pp03:
-        mov al, [character] 
-        mov [edi], al
-        inc edi
-        inc esi
-        mov cl,[matches]
-        add ecx,1
-        mov [matches],cl
-        jmp %%pp02
-%%pp05:
-        inc edi
-        inc esi 
-        jmp %%pp02;
+        mov esi, hidden ;put the memory direction of first character hidden word the game to esi register
+        mov edi, secret ;put the memory direction of first character secret word the game to edi register
+        mov ebx, 0      ;put the intial value 0, it represents the character still without finding
+        mov ecx, 0      ;put the intial value 0, it represents the matches the character joined with hidden word
+        mov [not_f],bl  ;put the intial value 0, to variable not_f
+        mov [matches],cl;put the intial value 0, to variable matches the character
+        jmp %%vc02;     ;skip to the label vc02     
+%%vc02:
+        mov al, [esi]   ;put the character indicate inside the hidden word to eax register
+        cmp al, 0       ;compare the character of eax register with 0 is namely the end of the hidden word
+        je %%end_m      ;if the comparation is equals skip to label end_m
+        cmp al, [character];compare the character in al with the joined from the player to eax register
+        je %%vc01       ;if the comparation is equals skip to vc01 label 
+        mov al, [edi]   ;put the character indicate inside the hidden word to eax register
+        mov dl,HIDDEN_CHAR;put the character that represents the characters without to find in the eax register
+        cmp al, dl      ;compare the character in al with the character that represents the character without to find
+        je %%vc04       ;if comparation es equals skip to vc04 label
+        jmp %%vc05      ;skip to the label vc05
+%%vc04:
+        mov bl,[not_f]  ;put the number actual of characters without to find by the player in to ebx register
+        add ebx,1       ;increase +1 the number stored in ebx register 
+        mov [not_f],bl  ;put the number actual of characters without to find by the player into variable not_f
+        jmp %%vc05      ;skip to the label vc05
+%%vc03:
+        mov al, [character];put the character joined for the player in to eax register
+        mov [edi], al   ;put the character joined for the player in the memory allocated of the secret word
+        inc edi         ;increase the number of memory allocated into the secret word
+        inc esi         ;increase the number of memory allocated into the hidden word
+        mov cl,[matches];put the number actual of characters that match with the hidden word in to ecx register
+        add ecx,1       ;increase +1 the number stored in the ecx register
+        mov [matches],cl;put the number actual of characters that match with the hidden word to variable not_f
+        jmp %%vc02      ;skip to the label vc02
+%%vc05:
+        inc edi         ;increase the number of memory allocated into the secret word
+        inc esi         ;increase the number of memory allocated into the hidden word
+        jmp %%vc02;     ;skip to the label vc02
 
-%%pp01:
-        mov al, [edi]
-        mov dl,HIDDEN_CHAR
-        cmp al, dl
-        je %%pp03
-        jmp %%pp05
+%%vc01:
+        mov al, [edi]   ;put the character indicate inside the hidden word to eax register
+        mov dl,HIDDEN_CHAR;put the character that represents the characters without to find in the eax register
+        cmp al, dl      ;compare the character in al with the character that represents the character without to find
+        je %%vc03       ;if comparation es equals skip to vc03 label
+        jmp %%vc05      ;skip to the label vc05
 
 %%end_m:
-        mov [matches],ecx
+        mov [matches],cl;put the number actual of characters that match with the hidden word to variable not_f
         popa
 %endmacro
 
 segment .data
+                        ;Create dictionary of messages for the player
+
         msgsacci  db " █▀ █▀█ █   █  █ █▀█ █▀▄ █▀█",10
                   db "▄█ █▀█ █▄▄  ▀▄▀ █▀█ █▄▀ █▄█",0
                 db "  █▀█ █░█ █▀█ █▀█ █▀▀ █▀█ █▀▄ █▀█",10
                 db " █▀█ █▀█ █▄█ █▀▄ █▄▄ █▀█ █▄▀ █▄█",0
 
+                        ;Create dictionary of scenes for the player
         scenes db "",10
                 db "",10
                 db "",10
@@ -323,7 +325,7 @@ segment .data
                 db "||           ",10
                 db "||_____________________",0
 
-
+                ;Create dictionary of words to choose randomly
         words   db "VICENT VAN GOGH" ,0
                 db "DIEGO VELAZQUEZ" ,0
                 db "PABLO PICASSO" ,0
@@ -346,12 +348,14 @@ segment .data
                 db "RENE MAGRITTE" ,0
                 db "SALVADOR DALI" ,0
 
-        msg_input db "Ingrese una letra",0
+        ;Create the constant with de message to indicate the player the entry of characters
+
+        msg_input db "Ingrese una letra (SOLO MAYUSCULAS)",0
 
         menu    db    "            ------------------------------------------------",10
                 db    "           |  --------------------------------------------  |",10
                 db    "           | |                                            | |",10
-                db    "           | |     ¡Bienvenido al juego del ahorcado!     | |",10
+                db    "           | |     ¡BIENVENIDO AL JUEGO DEL AHORCADO!     | |",10
                 db    "           | |                                            | |",10
                 db    "           | |      Ingresa el número de la opción        | |",10
                 db    "           | |      que desea                             | |",10
@@ -360,26 +364,26 @@ segment .data
                 db    "           | |      2.Salir del juego                     | |",10
                 db    "           |  --------------------------------------------  |",10                    
                 db    "            -------------------------------------------------   ",0
-        msg_lives db "Numero de vidas: ",0
+        msg_lives db "VIDAS RESTANTES: ",0
 segment .bss
 
         WORDS_LEN equ 21
         HIDDEN_CHAR     equ '*'     ;hidden char
-        MAX_WORD_LEN    equ 18      ;max length for sentences in the dictionary
-        PLAYER_LIVES    equ 8       ;player lives
-        INIT_SCENE    equ 0       ;player lives
+        MAX_WORD_LEN    equ 18      ;max length for sentences in the dictionary of words to choose
+        PLAYER_LIVES    equ 8       ;constant to save the player lives
+        INIT_SCENE    equ 0       ;constant to save the number of scene initial
 
         hidden  resb MAX_WORD_LEN   ;reserve space for store the characters hidden for length secret word 
         secret  resb MAX_WORD_LEN   ;reserve space for store the characters of secret word
         number  resb 1              ;reserve space for random number generated 
-        lives   resb 1              ;reserve space for number lives while playing
-        scene_num   resb 1          ;reserve space for number lives while playing
-        scene   resb 350          ;reserve space for number lives while playing
-        msg   resb 350          ;reserve space for number lives while playing
-        not_f resb 1
-        character resb 1
-        matches resb 1
-        option resb 1 
+        lives   resb 1          ;reserve space for number lives while playing
+        scene_num   resb 1      ;reserve space for number of current scene while playing
+        scene   resb 350        ;reserve space for characters a current scene  while playing
+        msg   resb 350          ;reserve space for characters a current message the end game
+        not_f resb 1            ;reserve space for number of characters a current that is not discovered while playing
+        character resb 1        ;reserve space for character that the player entry while playing
+        matches resb 1          ;reserve space for number of characters that match with the current hidden word
+        option resb 1           ;reserve space for numeber of de option that the player wants to perform
 
 segment .text
 
@@ -390,89 +394,89 @@ segment .text
                 pusha
         init:
                 mov eax , menu
-                call print_string
-                call print_nl
-                call read_int
-                mov [option], eax
-                mov eax, [option]
-                cmp eax,1
-                je game
-                jmp end_progra
+                call print_string       ;call the function for print the string allocated in the memory location the eax register
+                call print_nl           ;call the function to print line break
+                call read_int           ;call the function to read the integer (what the player wants)
+                mov [option], eax       ;put the option in the variable option
+                mov eax, [option]       ;put the value of variable option to eax register
+                cmp eax,1               ;compare if the eax register value is equals to 1
+                je game                 ;if the comparison is correct skip to game label
+                jmp end_progra          ;skip to the end_progra label
         game:
 
                 random WORDS_LEN        ; call macro that generate a random number
                 choose_word             ; call macro that choose a word based on random number
                 init_secret_word        ; call macro that preparing the word to be shown
                 mov byte [lives], PLAYER_LIVES;Assigns the intial number lives
-                mov byte [scene_num],INIT_SCENE;
+                mov byte [scene_num],INIT_SCENE;Assigns the intial number of the scene
                 showing_word            ; call macro showing_word   
-                mov eax , msg_input
-                call print_string
-                call print_nl
-                jmp play
+                mov eax , msg_input     ;put the message for the player during enters characters
+                call print_string       ;call the function for print the string allocated in the memory location the eax register
+                call print_nl           ;call the function to print line break
+                jmp play                ;skip to the play label
 
-        print_sm:
+        pri_ind:
                 mov eax , msg_lives
-                call print_string
+                call print_string       ;call the function for print the string allocated in the memory location the eax register
                 mov eax,0
-                mov al,[lives]
-                call print_int
-                call print_nl
-                mov al,[scene_num]
-                show_scene [scene_num]
-                call print_nl
-                showing_word
-                call print_nl            ; call macro showing_word   
-                mov eax , msg_input
-                call print_string
-                call print_nl
+                mov al,[lives]          ;put the current number lives to eax register
+                call print_int          ;call the function to print integer stored in the eax register
+                call print_nl           ;call the function to print line break
+                mov al,[scene_num]      ;put the current scene number in the eax register
+                show_scene [scene_num]  ;call the function to print the current scene
+                call print_nl           ;call the function to print line break
+                showing_word            ; call macro for show the secret word
+                call print_nl           ; call the function to print line break  
+                mov eax , msg_input     ;put the message for the player during enters characters
+                call print_string       ;call the function for print the string allocated in the memory location the eax register
+                call print_nl           ;call the function to print line break
         play:
-                call read_char
-                cmp al, LINE_FEED
-                je play
-                mov byte [character],al
-                verify_character
-                mov cl,[matches]
-                mov bl,[not_f]
+                call read_char          ;call function to read the character
+                cmp al, LINE_FEED       ;compare if the character entered is equals to character of line break  
+                je play                 ;if the comparison is correct skip to play label
+                mov byte [character],al ;put the character joined by the player to the variable character
+                verify_character        ;call macro for if verify the character is into the hidden word
+                mov cl,[matches]        ;put the current number of matches the character inside the hidden word
+                mov bl,[not_f]          ;put the current number of characters without finding
 
         loop_game:
-                cmp bl,0
-                je pg03
-                cmp cl,0
-                je pg01
-                mov eax , msg_input
-                showing_word            ; call macro showing_word   
-                call print_string
-                call print_nl
-                jmp play
+                cmp bl,0                ;compare if number of characters without finding is 0 
+                je pg03                 ;if the comparison is correct skip to pg03 label
+                cmp cl,0                ;compare if number of matches with the character is entered by the player
+                je pg01                 ;if the comparison is correct skip to pg01 label
+                mov eax , msg_input     ;put the message for the player during enters characters
+                showing_word            ; call macro for show the secret word   
+                call print_string       ;call the fuction for print the string allocated in the memory location the eax register
+                call print_nl           ;call the fuction to print line break
+                jmp play                ;skip to the play label
         pg01:
-                mov al,[lives]
-                sub eax,1
-                mov [lives],al
-                mov al,[scene_num]
-                add eax,1
-                mov [scene_num],al
-                mov al,[lives]
-                cmp al,0
-                je pg04
-                jmp print_sm
+                mov al,[lives]          ;put the current number lives to eax register
+                sub eax,1               ;substract 1 to value of eax register
+                mov [lives],al          ;put the current number of lives to variable lives
+                mov al,[scene_num]      ;put the current number of scene to eax register
+                add eax,1               ;add 1 to value of eax register
+                mov [scene_num],al      ;put the current number of scene to variable scene_num
+                mov al,[lives]          ;put the current number lives to eax register
+                cmp al,0                ;compare if number lives in the eax register is equals to 0
+                je pg04                 ;if the comparison is correct skip to the pri_ind label
+                jmp pri_ind             ;skip to the pri_ind label
         pg04:
                 mov eax , msg_lives
-                call print_string
-                mov eax,0
-                mov al,[lives]
-                call print_int
-                call print_nl
-                show_scene [scene_num]
-                call print_nl
-                show_message 2
-                jmp init 
+                call print_string       ;call the fuction for print the string allocated in the memory location the eax register
+                mov eax,0               ;put 0 value in the eax register for clean all register
+                mov al,[lives]          ;put the current number lives to eax register
+                call print_int          ;call the fuction to print integer stored in the eax register
+                call print_nl           ;call the fuction to print line break
+                show_scene [scene_num]  ;call the fuction to print the current scene
+                call print_nl           ;call the fuction to print line break
+                show_message 2          ;call macro for show the message of player looser
+                jmp init                ;skip to the init label
         pg03:   
-                call print_nl
-                showing_word
-                call print_nl
-                show_message 1
-                jmp init
+                call print_nl           ;call the fuction to print line break
+                showing_word            ; call macro for show the secret word
+                call print_nl           ;call the fuction to print line break
+                show_message 1          ;call macro for show the message of player winner
+                jmp init                ;skip to the init label
 
         end_progra:
 
